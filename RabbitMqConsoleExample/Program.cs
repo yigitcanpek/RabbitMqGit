@@ -8,11 +8,15 @@ using (var connection = factory.CreateConnection())
 {
     IModel channel = connection.CreateModel();
     channel.QueueDeclare("hello-queue", true,false, false);
-    string message = "hello world";
-    byte[] messageBody = Encoding.UTF8.GetBytes(message);
-    channel.BasicPublish(string.Empty,"hello-queue",null,messageBody);
-    Console.WriteLine($"{message} mesaj gönderilmiştir");
-    Console.ReadLine();
+    Enumerable.Range(1, 50).ToList().ForEach(x => {
+        string message = $"hello world{x}";
+        byte[] messageBody = Encoding.UTF8.GetBytes(message);
+        channel.BasicPublish(string.Empty, "hello-queue", null, messageBody);
+        Console.WriteLine($"{message} mesaj gönderilmiştir");
+    });
+
+    
+     Console.ReadLine();
 
 
 };
