@@ -10,14 +10,17 @@ factory.Uri = new Uri("amqps://vqylgepv:XtIAuRVyAZzSpzFEN2ThnZzZtTfv9M1R@cow.rmq
 using IConnection connection = factory.CreateConnection();
 
     IModel channel = connection.CreateModel();
-
     
+
     channel.BasicQos(0, 1, false);
     EventingBasicConsumer consumer = new EventingBasicConsumer(channel);
 
 
 
-    string queueName = "direct-queue -Critical";
+    string queueName = channel.QueueDeclare().QueueName;
+    string routeKey = "*.Error.*"; /* "Error.#" */
+    channel.QueueBind(queueName, "logs-topic",routeKey);
+    
     channel.BasicConsume(queueName, false, consumer);
 
     Console.WriteLine("Loglar dinleniyor...");
