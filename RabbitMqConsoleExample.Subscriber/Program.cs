@@ -10,7 +10,7 @@ factory.Uri = new Uri("amqps://vqylgepv:XtIAuRVyAZzSpzFEN2ThnZzZtTfv9M1R@cow.rmq
 using IConnection connection = factory.CreateConnection();
 
     IModel channel = connection.CreateModel();
-    
+    channel.ExchangeDeclare("header-exchange", durable: true/*exhangce saved*/, type: ExchangeType.Headers);
 
     channel.BasicQos(0, 1, false);
     EventingBasicConsumer consumer = new EventingBasicConsumer(channel);
@@ -18,9 +18,11 @@ using IConnection connection = factory.CreateConnection();
 
 
     string queueName = channel.QueueDeclare().QueueName;
-    string routeKey = "*.Error.*"; /* "Error.#" */
-    channel.QueueBind(queueName, "logs-topic",routeKey);
-    
+    Dictionary<string,object> headers = new Dictionary<string, object>();
+    headers.Add("format", "pdf");
+    headers.Add("shape", "a4");
+    headers.Add("x-match", "all" /* "any" */);
+    channel.QueueBind(queueName, "header-exchange",string.Empty,headers);
     channel.BasicConsume(queueName, false, consumer);
 
     Console.WriteLine("Loglar dinleniyor...");
@@ -29,7 +31,7 @@ using IConnection connection = factory.CreateConnection();
         string message = Encoding.UTF8.GetString(e.Body.ToArray());
         Thread.Sleep(1000);
         Console.WriteLine($"gelen log:{message}");
-        //File.AppendAllText("log-critical.txt", message+ "\n");
+       
         channel.BasicAck(e.DeliveryTag, true);
     };
     Console.ReadLine();
